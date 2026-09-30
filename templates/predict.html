@@ -1,172 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Churn Predictor</title>
+  <title>Predict — Churn Predictor</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }
-    h1 { font-size: 1.4rem; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; }
-    .topbar a, .topbar form button { margin-left: 12px; }
-    form.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin-top: 20px; }
-    form.grid p { margin: 0; }
-    label { display: block; font-size: .85rem; color: #333; }
-    input, select { width: 100%; padding: 6px; box-sizing: border-box; }
+    :root {
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --border: #e4e8ee;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --brand: #1f3a5f;
+      --brand-hover: #16293f;
+      --low: #2e9e5b;
+      --moderate: #d68a1a;
+      --high: #cf3b3b;
+      --err: #b00020;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0 16px 60px;
+    }
+    .wrap { max-width: 880px; margin: 0 auto; }
+    header.topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 0 16px; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+    }
+    header.topbar h1 { font-size: 1.15rem; margin: 0; color: var(--brand); letter-spacing: .2px; }
+    nav a { color: var(--brand); text-decoration: none; margin-left: 20px; font-size: .92rem; }
+    nav a:hover { text-decoration: underline; }
+    nav form { display: inline; }
+    nav button {
+      background: none; border: 1px solid var(--border); color: var(--brand);
+      padding: 4px 10px; border-radius: 4px; font-size: .88rem; cursor: pointer;
+      margin-left: 20px;
+    }
+    nav button:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 24px 28px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    }
+    .card + .card { margin-top: 18px; }
+    .card h2 {
+      font-size: .82rem; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); margin: 0 0 16px; font-weight: 600;
+    }
+    .grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px;
+    }
+    @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } }
+    label { display: block; font-size: .82rem; color: var(--muted); margin-bottom: 4px; }
+    input, select {
+      width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: .92rem; background: #fff; color: var(--text);
+      transition: border-color .12s;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--brand); }
     .full { grid-column: 1 / -1; }
-    button.submit { margin-top: 18px; padding: 10px 18px; }
-    .err { color: #b00020; }
+    .err { color: var(--err); font-size: .82rem; }
+    .actions { margin-top: 22px; text-align: right; }
+    button.primary {
+      background: var(--brand); color: #fff; border: none; border-radius: 6px;
+      padding: 10px 22px; font-size: .95rem; cursor: pointer; font-weight: 500;
+    }
+    button.primary:hover { background: var(--brand-hover); }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <h1>Customer churn risk</h1>
-    <div>
+<div class="wrap">
+  <header class="topbar">
+    <h1>Churn Predictor</h1>
+    <nav>
       <a href="{% url 'history' %}">History</a>
       <a href="{% url 'dashboard' %}">Dashboard</a>
-      <form method="post" action="{% url 'logout' %}" style="display:inline">
+      <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
         <button type="submit">Log out</button>
       </form>
-    </div>
-  </div>
-Save.
+    </nav>
+  </header>
 
-A3.2 — templates/result.html
-Open:
-
-bash
-nano templates/result.html
-Find the two links at the bottom:
-
-html
-  <a class="back" href="{% url 'predict' %}">← Predict another customer</a>
-  &nbsp;|&nbsp;
-  <a class="back" href="{% url 'history' %}">View history</a>
-Add a third one:
-
-html
-  <a class="back" href="{% url 'predict' %}">← Predict another customer</a>
-  &nbsp;|&nbsp;
-  <a class="back" href="{% url 'history' %}">View history</a>
-  &nbsp;|&nbsp;
-  <a class="back" href="{% url 'dashboard' %}">Dashboard</a>
-Save.
-
-A3.3 — templates/history.html
-Open:
-
-bash
-nano templates/history.html
-Find:
-
-html
-  <a class="back" href="{% url 'predict' %}">← New prediction</a>
-Add a Dashboard link next to it:
-
-html
-  <a class="back" href="{% url 'predict' %}">← New prediction</a>
-  &nbsp;|&nbsp;
-  <a class="back" href="{% url 'dashboard' %}">Dashboard</a>
-
-html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Dashboard — Churn Predictor</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 980px; margin: 40px auto; padding: 0 16px; }
-    h1 { font-size: 1.4rem; }
-    h2 { font-size: 1.15rem; margin-top: 28px; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; }
-    .topbar a, .topbar form button { margin-left: 12px; }
-    .cards { display: flex; gap: 16px; margin: 20px 0 28px; }
-    .card { flex: 1; padding: 16px; border-radius: 8px; }
-    .card h3 { margin: 0 0 4px; font-size: 1.8rem; }
-    .card span { color: #444; font-size: .9rem; }
-    .c1 { background: #eef2f7; }
-    .c2 { background: #fdecea; }
-    .c3 { background: #fff4e5; }
-    .chart-box { max-width: 520px; margin-bottom: 24px; }
-  </style>
-</head>
-<body>
-  <div class="topbar">
-    <h1>Churn dashboard</h1>
-    <div>
-      <a href="{% url 'predict' %}">New prediction</a>
-      <a href="{% url 'history' %}">History</a>
-      <form method="post" action="{% url 'logout' %}" style="display:inline">
-        {% csrf_token %}
-        <button type="submit">Log out</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="cards">
-    <div class="card c1"><h3>{{ total }}</h3><span>Customers scored</span></div>
-    <div class="card c2"><h3>{{ high }}</h3><span>High-risk customers</span></div>
-    <div class="card c3"><h3>{{ rate }}%</h3><span>Predicted churn rate</span></div>
-  </div>
-
-  <h2>Risk level distribution</h2>
-  <div class="chart-box">
-    <canvas id="riskChart" height="120"></canvas>
-  </div>
-
-  <h2>Predicted churn rate by contract type (%)</h2>
-  <div class="chart-box">
-    <canvas id="contractChart" height="120"></canvas>
-  </div>
-
-  {{ risk_data|json_script:"risk-data" }}
-  {{ contracts|json_script:"contract-labels" }}
-  {{ contract_rates|json_script:"contract-rates" }}
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    const risk = JSON.parse(document.getElementById('risk-data').textContent);
-    const labels = JSON.parse(document.getElementById('contract-labels').textContent);
-    const rates = JSON.parse(document.getElementById('contract-rates').textContent);
-
-    new Chart(document.getElementById('riskChart'), {
-      type: 'doughnut',
-      data: {
-        labels: ['Low', 'Moderate', 'High'],
-        datasets: [{ data: risk, backgroundColor: ['#2e9e5b', '#f0a030', '#d94040'] }]
-      }
-    });
-
-    new Chart(document.getElementById('contractChart'), {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{ label: 'Predicted churn rate %', data: rates, backgroundColor: '#1f3a5f' }]
-      },
-      options: { scales: { y: { beginAtZero: true } } }
-    });
-  </script>
-</body>
-</html>
-      <form method="post" action="{% url 'logout' %}" style="display:inline">
-        {% csrf_token %}
-        <button type="submit">Log out</button>
-      </form>
-    </div>
-  </div>
-
-  <form method="post" class="grid">
+  <form method="post">
     {% csrf_token %}
-    {% for field in form %}
-      <p class="{% if field.name == 'customer_name' %}full{% endif %}">
-        {{ field.label_tag }}
-        {{ field }}
-        {% if field.errors %}<span class="err">{{ field.errors|striptags }}</span>{% endif %}
-      </p>
-    {% endfor %}
-    <p class="full">
-      <button class="submit" type="submit">Predict churn risk</button>
-    </p>
+
+    <div class="card">
+      <h2>Customer</h2>
+      <div class="grid">
+        {% for field in form %}
+          {% if field.name == 'customer_name' or field.name == 'gender' or field.name == 'SeniorCitizen' or field.name == 'Partner' or field.name == 'Dependents' or field.name == 'tenure' %}
+            <p class="{% if field.name == 'customer_name' %}full{% endif %}" style="margin:0">
+              {{ field.label_tag }}{{ field }}
+              {% if field.errors %}<span class="err">{{ field.errors|striptags }}</span>{% endif %}
+            </p>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Services</h2>
+      <div class="grid">
+        {% for field in form %}
+          {% if field.name == 'PhoneService' or field.name == 'MultipleLines' or field.name == 'InternetService' or field.name == 'OnlineSecurity' or field.name == 'OnlineBackup' or field.name == 'DeviceProtection' or field.name == 'TechSupport' or field.name == 'StreamingTV' or field.name == 'StreamingMovies' %}
+            <p style="margin:0">
+              {{ field.label_tag }}{{ field }}
+              {% if field.errors %}<span class="err">{{ field.errors|striptags }}</span>{% endif %}
+            </p>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Billing</h2>
+      <div class="grid">
+        {% for field in form %}
+          {% if field.name == 'Contract' or field.name == 'PaperlessBilling' or field.name == 'PaymentMethod' or field.name == 'MonthlyCharges' or field.name == 'TotalCharges' %}
+            <p style="margin:0">
+              {{ field.label_tag }}{{ field }}
+              {% if field.errors %}<span class="err">{{ field.errors|striptags }}</span>{% endif %}
+            </p>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="primary">Predict churn risk →</button>
+    </div>
   </form>
+</div>
 </body>
 </html>

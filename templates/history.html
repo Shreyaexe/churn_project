@@ -1,51 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>History — Churn Predictor</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 16px; }
-    h1 { font-size: 1.4rem; }
-    table { border-collapse: collapse; width: 100%; margin-top: 16px; }
-    th, td { border-bottom: 1px solid #eee; padding: 8px; text-align: left; font-size: .92rem; }
-    th { background: #f7f7f7; }
-    .Low { color: #1a7f37; font-weight: 600; }
-    .Moderate { color: #b26a00; font-weight: 600; }
-    .High { color: #b00020; font-weight: 600; }
-    .empty { color: #777; margin-top: 20px; }
-    a.back { display: inline-block; margin-top: 20px; }
+    :root {
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --border: #e4e8ee;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --brand: #1f3a5f;
+      --low: #2e9e5b;
+      --low-bg: #e7f5ec;
+      --moderate: #d68a1a;
+      --moderate-bg: #fdf3e0;
+      --high: #cf3b3b;
+      --high-bg: #fbe9e9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0 16px 60px;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; }
+
+    header.topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 0 16px; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+    }
+    header.topbar h1 { font-size: 1.15rem; margin: 0; color: var(--brand); letter-spacing: .2px; }
+    nav a { color: var(--brand); text-decoration: none; margin-left: 20px; font-size: .92rem; }
+    nav a:hover { text-decoration: underline; }
+    nav form { display: inline; }
+    nav button {
+      background: none; border: 1px solid var(--border); color: var(--brand);
+      padding: 4px 10px; border-radius: 4px; font-size: .88rem; cursor: pointer;
+      margin-left: 20px;
+    }
+    nav button:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+    .page-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 16px;
+    }
+    .page-head h2 { font-size: 1.15rem; margin: 0; }
+    .page-head .count { color: var(--muted); font-size: .88rem; }
+
+    .table-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.03); overflow: hidden;
+    }
+    .table-scroll { overflow-x: auto; }
+
+    table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+    thead th {
+      text-align: left; font-weight: 600; font-size: .74rem; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--muted);
+      padding: 12px 16px; background: #f9fafc; border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 11px 16px; border-bottom: 1px solid #f0f2f6; vertical-align: middle;
+      white-space: nowrap;
+    }
+    tbody tr:nth-child(even) td { background: #fafbfd; }
+    tbody tr:hover td { background: #f1f5fb; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    th.num { text-align: right; }
+
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 999px;
+      font-size: .74rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .badge.Low { background: var(--low-bg); color: var(--low); }
+    .badge.Moderate { background: var(--moderate-bg); color: var(--moderate); }
+    .badge.High { background: var(--high-bg); color: var(--high); }
+
+    .prob { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .prob.Low { color: var(--low); }
+    .prob.Moderate { color: var(--moderate); }
+    .prob.High { color: var(--high); }
+
+    .link-view {
+      color: var(--brand); text-decoration: none; font-weight: 500;
+    }
+    .link-view:hover { text-decoration: underline; }
+
+    .empty {
+      padding: 40px 20px; text-align: center; color: var(--muted);
+    }
+    .empty a { color: var(--brand); text-decoration: none; }
+    .empty a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <h1>Prediction history</h1>
-  <a class="back" href="{% url 'predict' %}">← New prediction</a>
-  <a class="back" href="{% url 'dashboard' %}">Dashboard</a>
-  {% if predictions %}
-    <table>
-      <thead>
-        <tr>
-          <th>When</th><th>Customer</th><th>Contract</th><th>Tenure</th>
-          <th>Monthly</th><th>Probability</th><th>Risk</th><th>By</th><th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in predictions %}
-        <tr>
-          <td>{{ p.created_at|date:"Y-m-d H:i" }}</td>
-          <td>{{ p.customer_name|default:"—" }}</td>
-          <td>{{ p.contract }}</td>
-          <td>{{ p.tenure }}</td>
-          <td>{{ p.monthly_charges }}</td>
-          <td>{{ p.percent }}%</td>
-          <td class="{{ p.risk_level }}">{{ p.risk_level }}</td>
-          <td>{{ p.created_by|default:"—" }}</td>
-          <td><a href="{% url 'result' p.pk %}">view</a></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p class="empty">No predictions yet.</p>
-  {% endif %}
+<div class="wrap">
+  <header class="topbar">
+    <h1>Churn Predictor</h1>
+    <nav>
+      <a href="{% url 'predict' %}">New prediction</a>
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Log out</button>
+      </form>
+    </nav>
+  </header>
+
+  <div class="page-head">
+    <h2>Prediction history</h2>
+    <span class="count">{{ predictions|length }} record{{ predictions|length|pluralize }}</span>
+  </div>
+
+  <div class="table-card">
+    {% if predictions %}
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Customer</th>
+              <th>Contract</th>
+              <th class="num">Tenure</th>
+              <th class="num">Monthly</th>
+              <th class="num">Probability</th>
+              <th>Risk</th>
+              <th>By</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in predictions %}
+              <tr>
+                <td>{{ p.created_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ p.customer_name|default:"—" }}</td>
+                <td>{{ p.contract }}</td>
+                <td class="num">{{ p.tenure }}</td>
+                <td class="num">${{ p.monthly_charges }}</td>
+                <td class="num prob {{ p.risk_level }}">{{ p.percent }}%</td>
+                <td><span class="badge {{ p.risk_level }}">{{ p.risk_level }}</span></td>
+                <td>{{ p.created_by|default:"—" }}</td>
+                <td><a class="link-view" href="{% url 'result' p.pk %}">view</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty">
+        No predictions yet. <a href="{% url 'predict' %}">Make your first one →</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
 </body>
 </html>

@@ -1,44 +1,142 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Result — Churn Predictor</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 620px; margin: 40px auto; padding: 0 16px; }
-    h1 { font-size: 1.4rem; }
-    .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-top: 16px; }
-    .prob { font-size: 2rem; font-weight: 600; }
-    .Low { color: #1a7f37; }
-    .Moderate { color: #b26a00; }
-    .High { color: #b00020; }
-    dl { display: grid; grid-template-columns: 180px 1fr; gap: 6px 16px; margin-top: 16px; }
-    dt { color: #555; }
-    dd { margin: 0; }
-    a.back { display: inline-block; margin-top: 20px; }
+    :root {
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --border: #e4e8ee;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --brand: #1f3a5f;
+      --brand-hover: #16293f;
+      --low: #2e9e5b;
+      --low-bg: #e7f5ec;
+      --moderate: #d68a1a;
+      --moderate-bg: #fdf3e0;
+      --high: #cf3b3b;
+      --high-bg: #fbe9e9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0 16px 60px;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    header.topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 0 16px; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+    }
+    header.topbar h1 { font-size: 1.15rem; margin: 0; color: var(--brand); letter-spacing: .2px; }
+    nav a { color: var(--brand); text-decoration: none; margin-left: 20px; font-size: .92rem; }
+    nav a:hover { text-decoration: underline; }
+    nav form { display: inline; }
+    nav button {
+      background: none; border: 1px solid var(--border); color: var(--brand);
+      padding: 4px 10px; border-radius: 4px; font-size: .88rem; cursor: pointer;
+      margin-left: 20px;
+    }
+    nav button:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 28px 32px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    }
+    .headline {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 24px; flex-wrap: wrap;
+    }
+    .prob-label {
+      font-size: .78rem; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); margin-bottom: 4px; font-weight: 600;
+    }
+    .prob-value { font-size: 2.6rem; font-weight: 700; line-height: 1; }
+    .prob-value.Low { color: var(--low); }
+    .prob-value.Moderate { color: var(--moderate); }
+    .prob-value.High { color: var(--high); }
+
+    .badge {
+      display: inline-block; padding: 6px 14px; border-radius: 999px;
+      font-size: .82rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .badge.Low { background: var(--low-bg); color: var(--low); }
+    .badge.Moderate { background: var(--moderate-bg); color: var(--moderate); }
+    .badge.High { background: var(--high-bg); color: var(--high); }
+
+    .action {
+      margin-top: 20px; padding: 14px 18px; border-radius: 8px;
+      font-size: .94rem; line-height: 1.45;
+    }
+    .action.Low { background: var(--low-bg); color: #19612f; }
+    .action.Moderate { background: var(--moderate-bg); color: #7a4d09; }
+    .action.High { background: var(--high-bg); color: #8f1e1e; }
+    .action strong { display: block; font-size: .78rem; text-transform: uppercase;
+                     letter-spacing: .08em; margin-bottom: 4px; opacity: .8; }
+
+    .divider { height: 1px; background: var(--border); margin: 24px 0 18px; }
+
+    dl.details {
+      display: grid; grid-template-columns: 180px 1fr;
+      gap: 10px 20px; margin: 0;
+    }
+    dl.details dt { color: var(--muted); font-size: .88rem; }
+    dl.details dd { margin: 0; font-size: .92rem; }
+
+    .links { margin-top: 24px; display: flex; gap: 20px; flex-wrap: wrap; }
+    .links a { color: var(--brand); text-decoration: none; font-size: .92rem; }
+    .links a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <h1>Prediction result</h1>
+<div class="wrap">
+  <header class="topbar">
+    <h1>Churn Predictor</h1>
+    <nav>
+      <a href="{% url 'predict' %}">New prediction</a>
+      <a href="{% url 'history' %}">History</a>
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Log out</button>
+      </form>
+    </nav>
+  </header>
 
   <div class="card">
-    <div>Churn probability</div>
-    <div class="prob {{ p.risk_level }}">{{ p.percent }}%</div>
-    <div>Risk level: <strong class="{{ p.risk_level }}">{{ p.risk_level }}</strong></div>
+    <div class="headline">
+      <div>
+        <div class="prob-label">Churn probability</div>
+        <div class="prob-value {{ p.risk_level }}">{{ p.percent }}%</div>
+      </div>
+      <span class="badge {{ p.risk_level }}">{{ p.risk_level }} risk</span>
+    </div>
 
-    <dl>
+    <div class="action {{ p.risk_level }}">
+      <strong>Recommended action</strong>
+      {{ p.action }}
+    </div>
+
+    <div class="divider"></div>
+
+    <dl class="details">
       <dt>Customer</dt><dd>{{ p.customer_name|default:"—" }}</dd>
       <dt>Contract</dt><dd>{{ p.contract }}</dd>
       <dt>Tenure (months)</dt><dd>{{ p.tenure }}</dd>
-      <dt>Monthly charges</dt><dd>{{ p.monthly_charges }}</dd>
-      <dt>Recommended action</dt><dd>{{ p.action }}</dd>
+      <dt>Monthly charges</dt><dd>${{ p.monthly_charges }}</dd>
       <dt>Predicted at</dt><dd>{{ p.created_at }}</dd>
       <dt>Predicted by</dt><dd>{{ p.created_by|default:"—" }}</dd>
     </dl>
   </div>
 
-  <a class="back" href="{% url 'predict' %}">← Predict another customer</a>
-  &nbsp;|&nbsp;
-  <a class="back" href="{% url 'history' %}">View history</a>
-  <a class="back" href="{% url 'dashboard' %}">Dashboard</a>
+  <div class="links">
+    <a href="{% url 'predict' %}">← Predict another customer</a>
+    <a href="{% url 'history' %}">View history</a>
+  </div>
+</div>
 </body>
 </html>
