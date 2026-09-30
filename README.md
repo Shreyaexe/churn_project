@@ -12,7 +12,7 @@ and a suggested retention action. Model: Logistic Regression (scikit-learn pipel
 6. python manage.py runserver, then open http://127.0.0.1:8000/
 
 ## Login
-Superuser username: shreyyyaa
+Superuser username: shreya
 Superuser password: superuser
 
 ## Structure
