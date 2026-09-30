@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Churn Predictor</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }
+    h1 { font-size: 1.4rem; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; }
+    .topbar a, .topbar form button { margin-left: 12px; }
+    form.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin-top: 20px; }
+    form.grid p { margin: 0; }
+    label { display: block; font-size: .85rem; color: #333; }
+    input, select { width: 100%; padding: 6px; box-sizing: border-box; }
+    .full { grid-column: 1 / -1; }
+    button.submit { margin-top: 18px; padding: 10px 18px; }
+    .err { color: #b00020; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>Customer churn risk</h1>
+    <div>
+      <a href="{% url 'history' %}">History</a>
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <form method="post" action="{% url 'logout' %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit">Log out</button>
+      </form>
+    </div>
+  </div>
+Save.
+
+A3.2 — templates/result.html
+Open:
+
+bash
+nano templates/result.html
+Find the two links at the bottom:
+
+html
+  <a class="back" href="{% url 'predict' %}">← Predict another customer</a>
+  &nbsp;|&nbsp;
+  <a class="back" href="{% url 'history' %}">View history</a>
+Add a third one:
+
+html
+  <a class="back" href="{% url 'predict' %}">← Predict another customer</a>
+  &nbsp;|&nbsp;
+  <a class="back" href="{% url 'history' %}">View history</a>
+  &nbsp;|&nbsp;
+  <a class="back" href="{% url 'dashboard' %}">Dashboard</a>
+Save.
+
+A3.3 — templates/history.html
+Open:
+
+bash
+nano templates/history.html
+Find:
+
+html
+  <a class="back" href="{% url 'predict' %}">← New prediction</a>
+Add a Dashboard link next to it:
+
+html
+  <a class="back" href="{% url 'predict' %}">← New prediction</a>
+  &nbsp;|&nbsp;
+  <a class="back" href="{% url 'dashboard' %}">Dashboard</a>
+
+html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard — Churn Predictor</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 980px; margin: 40px auto; padding: 0 16px; }
+    h1 { font-size: 1.4rem; }
+    h2 { font-size: 1.15rem; margin-top: 28px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; }
+    .topbar a, .topbar form button { margin-left: 12px; }
+    .cards { display: flex; gap: 16px; margin: 20px 0 28px; }
+    .card { flex: 1; padding: 16px; border-radius: 8px; }
+    .card h3 { margin: 0 0 4px; font-size: 1.8rem; }
+    .card span { color: #444; font-size: .9rem; }
+    .c1 { background: #eef2f7; }
+    .c2 { background: #fdecea; }
+    .c3 { background: #fff4e5; }
+    .chart-box { max-width: 520px; margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>Churn dashboard</h1>
+    <div>
+      <a href="{% url 'predict' %}">New prediction</a>
+      <a href="{% url 'history' %}">History</a>
+      <form method="post" action="{% url 'logout' %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit">Log out</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card c1"><h3>{{ total }}</h3><span>Customers scored</span></div>
+    <div class="card c2"><h3>{{ high }}</h3><span>High-risk customers</span></div>
+    <div class="card c3"><h3>{{ rate }}%</h3><span>Predicted churn rate</span></div>
+  </div>
+
+  <h2>Risk level distribution</h2>
+  <div class="chart-box">
+    <canvas id="riskChart" height="120"></canvas>
+  </div>
+
+  <h2>Predicted churn rate by contract type (%)</h2>
+  <div class="chart-box">
+    <canvas id="contractChart" height="120"></canvas>
+  </div>
+
+  {{ risk_data|json_script:"risk-data" }}
+  {{ contracts|json_script:"contract-labels" }}
+  {{ contract_rates|json_script:"contract-rates" }}
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const risk = JSON.parse(document.getElementById('risk-data').textContent);
+    const labels = JSON.parse(document.getElementById('contract-labels').textContent);
+    const rates = JSON.parse(document.getElementById('contract-rates').textContent);
+
+    new Chart(document.getElementById('riskChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Low', 'Moderate', 'High'],
+        datasets: [{ data: risk, backgroundColor: ['#2e9e5b', '#f0a030', '#d94040'] }]
+      }
+    });
+
+    new Chart(document.getElementById('contractChart'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{ label: 'Predicted churn rate %', data: rates, backgroundColor: '#1f3a5f' }]
+      },
+      options: { scales: { y: { beginAtZero: true } } }
+    });
+  </script>
+</body>
+</html>
+      <form method="post" action="{% url 'logout' %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit">Log out</button>
+      </form>
+    </div>
+  </div>
+
+  <form method="post" class="grid">
+    {% csrf_token %}
+    {% for field in form %}
+      <p class="{% if field.name == 'customer_name' %}full{% endif %}">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.errors %}<span class="err">{{ field.errors|striptags }}</span>{% endif %}
+      </p>
+    {% endfor %}
+    <p class="full">
+      <button class="submit" type="submit">Predict churn risk</button>
+    </p>
+  </form>
+</body>
+</html>

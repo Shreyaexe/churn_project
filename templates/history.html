@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>History — Churn Predictor</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 16px; }
+    h1 { font-size: 1.4rem; }
+    table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+    th, td { border-bottom: 1px solid #eee; padding: 8px; text-align: left; font-size: .92rem; }
+    th { background: #f7f7f7; }
+    .Low { color: #1a7f37; font-weight: 600; }
+    .Moderate { color: #b26a00; font-weight: 600; }
+    .High { color: #b00020; font-weight: 600; }
+    .empty { color: #777; margin-top: 20px; }
+    a.back { display: inline-block; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Prediction history</h1>
+  <a class="back" href="{% url 'predict' %}">← New prediction</a>
+  <a class="back" href="{% url 'dashboard' %}">Dashboard</a>
+  {% if predictions %}
+    <table>
+      <thead>
+        <tr>
+          <th>When</th><th>Customer</th><th>Contract</th><th>Tenure</th>
+          <th>Monthly</th><th>Probability</th><th>Risk</th><th>By</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in predictions %}
+        <tr>
+          <td>{{ p.created_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ p.customer_name|default:"—" }}</td>
+          <td>{{ p.contract }}</td>
+          <td>{{ p.tenure }}</td>
+          <td>{{ p.monthly_charges }}</td>
+          <td>{{ p.percent }}%</td>
+          <td class="{{ p.risk_level }}">{{ p.risk_level }}</td>
+          <td>{{ p.created_by|default:"—" }}</td>
+          <td><a href="{% url 'result' p.pk %}">view</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty">No predictions yet.</p>
+  {% endif %}
+</body>
+</html>
